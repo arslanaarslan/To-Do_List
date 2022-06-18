@@ -1,0 +1,77 @@
+/* Fonts:
+         font-family: 'Noto Sans', sans-serif;
+         font-family: 'Vibur', cursive;
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    vertical-align: baseline;
+    background: transparent;
+}
+
+.row::after {
+    content: "";
+    clear: both;
+    display: block;
+    margin-bottom: 20pt;
+}
+
+h1 {
+    text-align: center;
+    font-family: 'Noto Sans', sans-serif;
+}
+#input-task {
+    width: 95%;
+    height: 40px;
+    border-bottom: 2px black solid;
+    /*border-left: 1px palevioletred solid;*/
+    /*border-radius: 2px;*/
+    margin-right: 2.5%;
+    margin-left: 2.5%;
+    /*background-color: lightgrey;*/
+}
+
+#add-task-button {
+    width: 90%;
+    margin-right: 10%;;
+    height: 40px;
+    border-radius: 2px;
+    background-color: #c8b8db;
+    color: white;
+    font-family: 'Noto Sans', sans-serif;
+}
+
+ul {
+    list-style: none;
+    margin: 20px;
+}
+
+span {
+    font-family: cursive;
+    display: inline-block;
+    width: 80%;
+    font-size: 24px;
+}
+
+.delete-btn {
+    float: right;
+    margin-right: 25px;
+}
+
+[type="checkbox"] {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.completed {
+    text-decoration: line-through;
+}
+
+@media(min-height:870px) {
+    .container {
+        min-height: 870px;
+    }
+}

@@ -1,0 +1,413 @@
+type: edu
+files:
+- name: src/index.html
+  visible: true
+  text: |
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>To-Do List</title>
+    </head>
+    <body>
+        <div>
+          <h1 class="caption">To-Do List</h1>
+        </div>
+        <div>
+            <input type="text" id="input-task">
+            <button id="add-task-button">ADD TASK</button>
+        </div>
+        <div>
+            <ul id="task-list">
+                <li>
+                    <input type="checkbox">
+                    <span class="task">Email David</span>
+                    <button class="delete-btn"></button>
+                </li>
+                <li>
+                    <input type="checkbox">
+                    <span class="task">Create ideal persona guide</span>
+                    <button class="delete-btn"></button>
+                </li>
+                <li>
+                    <input type="checkbox">
+                    <span class="task">Set up A/B test</span>
+                    <button class="delete-btn"></button>
+                </li>
+            </ul>
+        </div>
+    </body>
+    </html>
+  learner_created: false
+- name: test/test.js
+  visible: false
+  text: |+
+    const path = require('path');
+    const pagePath = 'file://' + path.resolve(__dirname, '../src/index.html');
+    const {StageTest, correct, wrong} = require('hs-test-web');
+
+    class TodoTest extends StageTest {
+
+        page = this.getPage(pagePath)
+
+        tests = [
+            this.page.execute(() => {
+                if (document.title !== 'To-Do List') {
+                    return wrong("The title of the page should be 'To-Do List'")
+                }
+
+                return correct();
+            }),
+            this.page.execute(() => {
+
+                let taskList = document.getElementById("task-list")
+
+                if (taskList === null || taskList.tagName !== 'UL')
+                    return wrong("Can't find <ul> tag with id '#task-list'")
+
+                let tasks = taskList.getElementsByTagName("li")
+
+                const numberOfTasks = tasks.length;
+                let counter = 0;
+
+                while (true) {
+
+                    if (counter > numberOfTasks) {
+                        return wrong("Looks like after deleting a task it is not removed from the task list!")
+                    }
+
+                    const deleteButton = document.querySelector("button.delete-btn")
+                    if (deleteButton === null) {
+                        break
+                    }
+                    deleteButton.click()
+
+                    counter++
+                }
+
+                taskList = document.getElementById("task-list")
+                if (taskList === null || taskList.tagName !== 'UL')
+                    return wrong("After deleting the tasks can't find <ul> tag with id '#task-list'")
+
+                tasks = taskList.getElementsByTagName("li")
+
+                if (tasks.length !== 0) {
+                    return wrong("After deleting all the tasks there shouldn't be any <li> tag")
+                }
+
+                return correct()
+            }),
+            this.page.execute(() => {
+                const tasksName = ['First task', 'Second task', 'Third task', 'Fourth task', 'Fifth task']
+
+                const inputField = document.getElementById("input-task")
+                if (inputField === null || inputField.tagName !== 'INPUT')
+                    return wrong("Can't find input field with id '#input-task'")
+
+                const addButton = document.getElementById("add-task-button")
+                if (addButton === null || addButton.tagName !== 'BUTTON')
+                    return wrong("Can't find button with id '#add-task-button'")
+
+                const taskList = document.getElementById("task-list")
+                if (taskList === null || taskList.tagName !== 'UL')
+                    return wrong("Can't find <ul> tag with id '#task-list'")
+
+                let currentTaskCounter = 1;
+
+                for (let taskName of tasksName) {
+                    inputField.value = taskName
+                    addButton.click()
+
+                    const tasks = taskList.getElementsByTagName("li")
+
+                    if (tasks.length !== currentTaskCounter) {
+                        return wrong("After adding a task number of the <li> tags is not increased!")
+                    }
+
+                    currentTaskCounter++
+                }
+
+                return correct()
+            }),
+            this.page.execute(() => {
+
+                const taskList = document.getElementById("task-list")
+                if (taskList.tagName !== 'UL')
+                    return wrong("Can't find <ul> tag with id '#task-list'")
+
+                const tasks = taskList.getElementsByTagName("li")
+                if (tasks.length !== 5)
+                    return wrong("Inside the <ul> tag should be 5 <li> elements after adding 5 tasks!")
+
+                for (let task of tasks) {
+                    const checkbox = task.querySelector("input[type=checkbox]")
+                    if (checkbox === null)
+                        return wrong("Inside each <li> tag should one <input> tag with 'checkbox' type")
+
+                    const taskName = task.querySelector("span.task")
+                    if (taskName === null)
+                        return wrong("Inside each <li> tag should one <spane> tag with 'task' class")
+
+                    const deleteButton = task.querySelector("button.delete-btn")
+                    if (deleteButton === null)
+                        return wrong("Inside each <li> tag should one <button> tag with 'delete-btn' class")
+                }
+
+
+                return correct();
+            }),
+            this.page.execute(() => {
+                const taskList = document.getElementById("task-list")
+                if (taskList.tagName !== 'UL')
+                    return wrong("Can't find <ul> tag with id '#task-list'")
+
+                let tasks = taskList.getElementsByTagName("li")
+
+                for (let task of tasks) {
+                    const taskName = task.querySelector("span.task")
+
+                    if (taskName === null)
+                        return wrong("Inside each <li> tag should one <spane> tag with 'task' class")
+
+                    if (taskName.textContent === 'Third task') {
+                        const checkbox = task.querySelector("input[type=checkbox]")
+                        checkbox.click()
+                        break;
+                    }
+                }
+
+                tasks = taskList.getElementsByTagName("li")
+
+                for (let task of tasks) {
+
+                    const taskName = task.querySelector("span.task")
+
+                    if (taskName === null) {
+                        return wrong("After marking a task as completed can not find a <span> tag with 'task' class inside <li> tag")
+                    }
+
+                    if (taskName.textContent === 'Third task') {
+                        let taskName = task.querySelector("span.task")
+                        if (taskName === null)
+                            return wrong("Inside each <li> tag should be one <span> tag with 'task' class")
+
+                        if (!taskName.style.textDecoration.includes("line-through") &&
+                            !getComputedStyle(taskName).textDecoration.includes("line-through")) {
+                            return wrong("If checkbox is checked the task name should be crossed out.\n" +
+                                "The span tag with task name should have 'text-decoration: line-trough' style")
+                        }
+
+                        return correct()
+                    }
+                }
+
+                return wrong("Can't find task with name 'Third task' after it was added!")
+            }),
+            this.node.execute(async () => {
+                await this.page.refresh()
+                return correct()
+            }),
+            this.page.execute(async () => {
+
+                const taskList = document.getElementById("task-list")
+                if (taskList.tagName !== 'UL')
+                    return wrong("Can't find <ul> tag with id '#task-list'")
+
+                const tasks = taskList.getElementsByTagName("li")
+
+                if (tasks.length !== 5) {
+                    return wrong("Looks like you didn't store the tasks in the local storage.\n" +
+                        "After refreshing the page expected 5 tasks!")
+                }
+
+                for (let task of tasks) {
+                    const checkbox = task.querySelector("input[type=checkbox]")
+                    if (checkbox === null)
+                        return wrong("Inside each <li> tag should one <input> tag with 'checkbox' type")
+
+                    const taskName = task.querySelector("span.task")
+                    if (taskName === null)
+                        return wrong("Inside each <li> tag should one <spane> tag with 'task' class")
+
+                    const deleteButton = task.querySelector("button.delete-btn")
+                    if (deleteButton === null)
+                        return wrong("Inside each <li> tag should one <button> tag with 'delete-btn' class")
+                }
+
+                return correct()
+            })
+        ]
+    }
+
+    it('Test stage', async function () {
+        try {
+            this.timeout(30000)
+        } catch (ignored) {
+        }
+        await new TodoTest().runTests()
+    }, 30000)
+
+  learner_created: false
+- name: src/scripts/app.js
+  visible: true
+  text: |-
+    /* Delete icon: <i class="fa-solid fa-trash-can"></i> */
+    let deleteButtons = document.querySelectorAll(".delete-btn");
+
+    function deleteTask() {
+        console.log(deleteButtons.innerText);
+        // console.log(`${deleteButtons.length} task left.`);
+        this.parentNode.remove();
+        deleteButtons = document.querySelectorAll(".delete-btn");
+    }
+
+    for (let i = 0; i < deleteButtons.length; i++) {
+        deleteButtons[i].addEventListener("click", deleteTask);
+    }
+
+    let checkBoxes = document.querySelectorAll('input[type="checkbox"]');
+
+    function completeTask() {
+        // console.log(`There are ${checkBoxes.length}.`);
+        this.parentNode.children[1].classList.toggle('completed');
+    }
+
+    for (let j = 0; j < checkBoxes.length; j++) {
+        checkBoxes[j].addEventListener("click", completeTask);
+    }
+
+    let addTaskButton = document.getElementById('add-task-button');
+    let inputBox = document.getElementById('input-task')
+
+    let taskList = document.getElementById('task-list');
+
+    function handleAddNewTasK() {
+        let task = document.querySelector("#input-task").value;
+        let list = document.createElement("li");
+
+        let checkbox = document.createElement("input");
+        checkbox.setAttribute("type", "checkbox");
+        checkbox.addEventListener("click", () => {
+            checkbox.parentNode.children[1].classList.toggle('completed');
+        });
+
+        let span = document.createElement("span");
+        span.classList.add("task");
+        span.appendChild(document.createTextNode(task));
+
+        let btnDel = document.createElement("button");
+        let icon = document.createElement("i");
+        icon.classList.add("fa-solid");
+        icon.classList.add("fa-circle-xmark");
+        btnDel.appendChild(icon);
+        btnDel.classList.add("delete-btn");
+        btnDel.addEventListener("click", function () {
+            this.parentNode.remove();
+        });
+
+        list.appendChild(checkbox);
+        list.appendChild(span);
+        list.appendChild(btnDel);
+        document.querySelector("#task-list").appendChild(list);
+
+        // clear input box
+        document.getElementById('input-task').value = "";
+    }
+
+    addTaskButton.addEventListener("click", handleAddNewTasK);
+    inputBox.addEventListener("keypress", (event)=> {
+        if (event.keyCode === 13) { // key code of the keyboard key
+            event.preventDefault();
+            // your code to Run
+            handleAddNewTasK();
+        }
+    });
+  learner_created: true
+- name: src/styles/style.css
+  visible: true
+  text: |-
+    /* Fonts:
+             font-family: 'Noto Sans', sans-serif;
+             font-family: 'Vibur', cursive;
+     */
+
+    * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        vertical-align: baseline;
+        background: transparent;
+    }
+
+    .row::after {
+        content: "";
+        clear: both;
+        display: block;
+        margin-bottom: 20pt;
+    }
+
+    h1 {
+        text-align: center;
+        font-family: 'Noto Sans', sans-serif;
+    }
+    #input-task {
+        width: 95%;
+        height: 40px;
+        border-bottom: 2px black solid;
+        /*border-left: 1px palevioletred solid;*/
+        /*border-radius: 2px;*/
+        margin-right: 2.5%;
+        margin-left: 2.5%;
+        /*background-color: lightgrey;*/
+    }
+
+    #add-task-button {
+        width: 90%;
+        margin-right: 10%;;
+        height: 40px;
+        border-radius: 2px;
+        background-color: #c8b8db;
+        color: white;
+        font-family: 'Noto Sans', sans-serif;
+    }
+
+    ul {
+        list-style: none;
+        margin: 20px;
+    }
+
+    span {
+        font-family: cursive;
+        display: inline-block;
+        width: 80%;
+        font-size: 24px;
+    }
+
+    .delete-btn {
+        float: right;
+        margin-right: 25px;
+    }
+
+    [type="checkbox"] {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+
+    .completed {
+        text-decoration: line-through;
+    }
+
+    @media(min-height:870px) {
+        .container {
+            min-height: 870px;
+        }
+    }
+  learner_created: true
+feedback_link: https://hyperskill.org/learn/step/13197#comment
+status: Solved
+feedback:
+  message: Well done! You've finished the project. Select a new project on <a href="https://hyperskill.org/projects">JetBrains
+    Academy</a> to continue learning.
+  time: Sat, 18 Jun 2022 21:08:24 UTC
+record: -1
